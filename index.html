@@ -153,6 +153,30 @@ a{color:inherit}
 }
 .vacio strong{display:block;color:var(--tinta);margin-bottom:5px}
 
+/* ---------- Alta ---------- */
+#alta{display:none;max-width:720px}
+#alta h1{font-size:22px;letter-spacing:-.02em;margin-bottom:6px}
+#alta .intro{color:var(--tinta-suave);margin-bottom:26px;max-width:58ch}
+.fila{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:16px}
+.f{flex:1;min-width:190px;display:flex;flex-direction:column}
+.f.ancho{flex-basis:100%}
+.f label{font-size:13px;color:var(--tinta-suave);margin-bottom:4px}
+.f input,.f select,.f textarea{
+  padding:9px 11px;border:1px solid var(--linea);background:var(--tarjeta);
+  border-radius:var(--radio);font:inherit;color:inherit;width:100%;
+}
+.f textarea{resize:vertical;min-height:88px;line-height:1.45}
+.f input:focus,.f select:focus,.f textarea:focus{outline:2px solid var(--tinta);outline-offset:-1px}
+.f .pista{font-size:13px;color:var(--tinta-suave);margin-top:4px}
+.f .pista.corto{color:var(--caido)}
+.acciones{display:flex;gap:10px;align-items:center;margin-top:8px}
+.acciones .principal{width:auto;padding:10px 20px;margin:0}
+.acciones .cancelar{text-decoration:underline;color:var(--tinta-suave)}
+.cargar{
+  margin:0 20px 18px;padding:8px 0;text-align:left;
+  font-weight:600;text-decoration:underline;
+}
+
 /* ---------- Detalle ----------
    El dashboard manda: ocupa el ancho completo y casi todo el
    alto de la ventana. La ficha queda debajo, al alcance de un
@@ -206,6 +230,7 @@ a{color:inherit}
   <nav id="rail">
     <div class="marca">Dashboards ZB</div>
     <div class="contextos" id="contextos"></div>
+    <button class="cargar" id="irAlta" hidden>+ Cargar dashboard</button>
     <div class="pie">
       <div id="quien"></div>
       <button id="salir">Salir</button>
@@ -222,6 +247,84 @@ a{color:inherit}
       <div class="respuesta" id="respuesta" hidden></div>
       <div class="grilla" id="grilla"></div>
     </div>
+
+    <section id="alta">
+      <h1>Cargar un dashboard</h1>
+      <p class="intro">Lo que escribas acá es lo que va a permitir que alguien lo encuentre sin saber cómo se llama. Vale la pena el minuto extra.</p>
+
+      <div class="fila">
+        <div class="f"><label for="a-titulo">Título</label>
+          <input id="a-titulo" placeholder="Performance digital semanal"></div>
+        <div class="f"><label for="a-marca">Marca</label>
+          <input id="a-marca" list="marcas-lista" placeholder="Mercado Libre">
+          <datalist id="marcas-lista"></datalist></div>
+      </div>
+
+      <div class="fila">
+        <div class="f"><label for="a-contexto">Contexto</label>
+          <select id="a-contexto">
+            <option value="digital">Digital</option>
+            <option value="off">OFF</option>
+            <option value="360">360</option>
+            <option value="regional">Regional</option>
+          </select>
+          <div class="pista">Define en qué sección aparece. Uno solo.</div></div>
+        <div class="f"><label for="a-herramienta">Herramienta</label>
+          <select id="a-herramienta">
+            <option value="power_bi">Power BI</option>
+            <option value="tableau">Tableau</option>
+            <option value="looker_studio">Looker Studio</option>
+            <option value="html">HTML propio</option>
+          </select></div>
+        <div class="f"><label for="a-proporcion">Proporción</label>
+          <select id="a-proporcion">
+            <option value="16:9">16:9</option>
+            <option value="4:3">4:3</option>
+            <option value="alto">Alto completo</option>
+          </select>
+          <div class="pista">16:9 para Power BI. Alto para HTML propios.</div></div>
+      </div>
+
+      <div class="fila">
+        <div class="f ancho"><label for="a-url">URL del dashboard</label>
+          <input id="a-url" placeholder="https://..."></div>
+      </div>
+
+      <div class="fila">
+        <div class="f ancho"><label for="a-responde">Qué responde este dashboard</label>
+          <textarea id="a-responde" placeholder="Muestra CPM, CPC y CTR por campaña, canal y semana. Sirve para seguir la eficiencia de compra durante la campaña."></textarea>
+          <div class="pista" id="a-cuenta">Contá qué muestra y para qué decisión sirve.</div></div>
+      </div>
+
+      <div class="fila">
+        <div class="f"><label for="a-metricas">Métricas</label>
+          <input id="a-metricas" placeholder="CPM, CPC, CTR, inversión">
+          <div class="pista">Separadas por coma.</div></div>
+        <div class="f"><label for="a-granularidad">Granularidad</label>
+          <input id="a-granularidad" placeholder="campaña, canal, semana">
+          <div class="pista">Separadas por coma.</div></div>
+      </div>
+
+      <div class="fila">
+        <div class="f"><label for="a-frecuencia">Frecuencia de actualización</label>
+          <select id="a-frecuencia">
+            <option value="diaria">Diaria</option>
+            <option value="semanal" selected>Semanal</option>
+            <option value="mensual">Mensual</option>
+            <option value="eventual">Eventual</option>
+          </select></div>
+        <div class="f"><label for="a-responsable">Responsable</label>
+          <select id="a-responsable"></select></div>
+        <div class="f"><label for="a-tags">Tags</label>
+          <input id="a-tags" placeholder="digital, performance"></div>
+      </div>
+
+      <div class="acciones">
+        <button class="principal" id="a-guardar">Cargar dashboard</button>
+        <button class="cancelar" id="a-cancelar">Cancelar</button>
+      </div>
+      <p class="error" id="a-error" hidden></p>
+    </section>
 
     <div id="detalle">
       <button class="volver" id="volver">← Volver al catálogo</button>
@@ -284,6 +387,11 @@ async function abrir(){
   $('ingreso').style.display = 'none';
   $('app').style.display = 'grid';
   $('quien').textContent = sesion.user.email;
+
+  const { data: yo } = await db.from('perfiles')
+    .select('puede_cargar').eq('id', sesion.user.id).single();
+  if (yo?.puede_cargar) $('irAlta').hidden = false;
+
   pintarContextos();
   await cargar();
 }
@@ -317,6 +425,9 @@ function pintarContextos(){
     b.innerHTML = `${nombre}<span class="cuenta">${n}</span>`;
     b.onclick = () => {
       ctxActivo = valor; tagsActivos.clear();
+      $('alta').style.display = 'none';
+      $('detalle').style.display = 'none';
+      $('catalogo').style.display = 'block';
       pintarContextos(); pintarEtiquetas(); pintarGrilla();
     };
     $('contextos').appendChild(b);
@@ -409,6 +520,120 @@ async function pedirAcceso(f){
     .insert({ dashboard_id: f.id, perfil_id: sesion.user.id });
   alert(error ? 'No se pudo registrar el pedido.' : `Pedido enviado: ${f.titulo}`);
 }
+
+/* ---------- Alta ----------
+   El formulario del Data Hub nunca preguntaba qué mide el
+   reporte, y por eso hoy nada se puede recomendar. Los campos
+   de la ficha son obligatorios acá: sin ellos el buscador no
+   tiene con qué trabajar.
+-------------------------------------------------------------- */
+const MIN_RESPONDE = 40;
+
+$('irAlta').onclick = async () => {
+  $('catalogo').style.display = 'none';
+  $('detalle').style.display = 'none';
+  $('alta').style.display = 'block';
+
+  const { data: marcas } = await db.from('marcas').select('nombre').order('nombre');
+  $('marcas-lista').innerHTML = (marcas || [])
+    .map(m => `<option value="${esc(m.nombre)}">`).join('');
+
+  const { data: gente } = await db.from('perfiles')
+    .select('id,nombre,email').eq('tipo', 'interno').order('email');
+  $('a-responsable').innerHTML = (gente || [])
+    .map(p => `<option value="${p.id}"${p.id === sesion.user.id ? ' selected' : ''}>${esc(p.nombre || p.email)}</option>`)
+    .join('');
+
+  if (ctxActivo !== 'todos') $('a-contexto').value = ctxActivo;
+};
+
+$('a-cancelar').onclick = cerrarAlta;
+function cerrarAlta(){
+  $('alta').style.display = 'none';
+  $('catalogo').style.display = 'block';
+  $('a-error').hidden = true;
+}
+
+$('a-responde').addEventListener('input', e => {
+  const n = e.target.value.trim().length;
+  const p = $('a-cuenta');
+  if (n === 0){
+    p.className = 'pista';
+    p.textContent = 'Contá qué muestra y para qué decisión sirve.';
+  } else if (n < MIN_RESPONDE){
+    p.className = 'pista corto';
+    p.textContent = `Faltan ${MIN_RESPONDE - n} caracteres. Una línea suelta no alcanza para que alguien lo encuentre.`;
+  } else {
+    p.className = 'pista';
+    p.textContent = 'Listo.';
+  }
+});
+
+const lista = id => $(id).value.split(',').map(s => s.trim()).filter(Boolean);
+
+$('a-guardar').onclick = async () => {
+  const err = $('a-error');
+  const boton = $('a-guardar');
+  err.hidden = true;
+
+  const titulo   = $('a-titulo').value.trim();
+  const url      = $('a-url').value.trim();
+  const responde = $('a-responde').value.trim();
+
+  if (!titulo || !url || responde.length < MIN_RESPONDE){
+    err.textContent = 'Falta el título, la URL o la descripción de qué responde.';
+    err.hidden = false;
+    return;
+  }
+
+  boton.disabled = true;
+
+  // La marca se crea sola si es nueva.
+  let marca_id = null;
+  const marca = $('a-marca').value.trim();
+  if (marca){
+    const { data: existente } = await db.from('marcas')
+      .select('id').eq('nombre', marca).maybeSingle();
+    if (existente) marca_id = existente.id;
+    else {
+      const { data: nueva } = await db.from('marcas')
+        .insert({ nombre: marca }).select('id').single();
+      marca_id = nueva?.id ?? null;
+    }
+  }
+
+  const { error } = await db.from('dashboards').insert({
+    titulo,
+    contexto:     $('a-contexto').value,
+    herramienta:  $('a-herramienta').value,
+    proporcion:   $('a-proporcion').value,
+    url,
+    marca_id,
+    que_responde: responde,
+    metricas:     lista('a-metricas'),
+    granularidad: lista('a-granularidad'),
+    tags:         lista('a-tags'),
+    frecuencia:   $('a-frecuencia').value,
+    responsable_id: $('a-responsable').value || null,
+    refresco_origen: 'manual'
+  });
+
+  boton.disabled = false;
+
+  if (error){
+    err.textContent = 'No se pudo cargar: ' + error.message;
+    err.hidden = false;
+    return;
+  }
+
+  ['a-titulo','a-url','a-responde','a-metricas','a-granularidad','a-tags','a-marca']
+    .forEach(id => $(id).value = '');
+  $('a-cuenta').className = 'pista';
+  $('a-cuenta').textContent = 'Contá qué muestra y para qué decisión sirve.';
+
+  cerrarAlta();
+  await cargar();
+};
 
 /* ---------- Búsqueda ----------
    La pregunta va a la Edge Function, que consulta a Claude con
