@@ -146,19 +146,24 @@ a{color:inherit}
 }
 .vacio strong{display:block;color:var(--tinta);margin-bottom:5px}
 
-/* ---------- Detalle ---------- */
-#detalle{display:none;grid-template-columns:1fr 288px;gap:18px;height:calc(100vh - 86px)}
-@media(max-width:1000px){#detalle{grid-template-columns:1fr;height:auto}}
+/* ---------- Detalle ----------
+   El dashboard manda: ocupa el ancho completo y casi todo el
+   alto de la ventana. La ficha queda debajo, al alcance de un
+   scroll, para cuando hace falta chequear qué mide o quién lo
+   mantiene. */
+#detalle{display:none}
 .volver{margin-bottom:14px;font-weight:600;text-decoration:underline}
 .marco{
   border:1px solid var(--linea);border-radius:var(--radio);
-  background:var(--tarjeta);overflow:hidden;min-height:440px;
+  background:var(--tarjeta);overflow:hidden;
+  height:calc(100vh - 150px);min-height:440px;
 }
 .marco iframe{width:100%;height:100%;border:none;display:block}
-.ficha{font-size:14px}
-.ficha h2{font-size:18px;letter-spacing:-.01em;margin-bottom:8px}
-.ficha .responde{margin-bottom:18px}
-.dato{padding:9px 0;border-top:1px solid var(--linea)}
+.ficha{margin-top:26px;padding-top:20px;border-top:1px solid var(--linea)}
+.ficha h2{font-size:20px;letter-spacing:-.015em;margin-bottom:7px}
+.ficha .responde{max-width:68ch;font-size:15px;margin-bottom:22px}
+.datos{display:flex;flex-wrap:wrap;gap:20px 44px}
+.dato{font-size:14px}
 .dato span{display:block;color:var(--tinta-suave);font-size:13px;margin-bottom:2px}
 </style>
 </head>
@@ -196,11 +201,9 @@ a{color:inherit}
     </div>
 
     <div id="detalle">
-      <div>
-        <button class="volver" id="volver">← Volver al catálogo</button>
-        <div class="marco"><iframe id="embed" title="Dashboard"></iframe></div>
-      </div>
-      <aside class="ficha" id="ficha"></aside>
+      <button class="volver" id="volver">← Volver al catálogo</button>
+      <div class="marco"><iframe id="embed" title="Dashboard"></iframe></div>
+      <section class="ficha" id="ficha"></section>
     </div>
   </div>
 </main>
@@ -354,18 +357,20 @@ async function verDashboard(f){
   const { data: url } = await db.rpc('get_embed_url', { d: f.id });
 
   $('catalogo').style.display = 'none';
-  $('detalle').style.display = 'grid';
+  $('detalle').style.display = 'block';
   $('embed').src = url || 'about:blank';
 
   $('ficha').innerHTML = `
     <h2>${esc(f.titulo)}</h2>
     <div class="responde">${esc(f.que_responde)}</div>
-    <div class="dato"><span>Actualización</span>${FRESCURA[f.frescura]} · ${desde(f.ultimo_refresco)}</div>
-    <div class="dato"><span>Métricas</span>${(f.metricas||[]).join(', ') || '—'}</div>
-    <div class="dato"><span>Granularidad</span>${(f.granularidad||[]).join(' · ') || '—'}</div>
-    <div class="dato"><span>Frecuencia</span>${f.frecuencia}</div>
-    <div class="dato"><span>Responsable</span>${esc(f.responsable || 'Sin asignar')}</div>
-    <div class="dato"><span>Marca</span>${esc(f.marca || '—')}</div>`;
+    <div class="datos">
+      <div class="dato"><span>Actualización</span>${FRESCURA[f.frescura]} · ${desde(f.ultimo_refresco)}</div>
+      <div class="dato"><span>Frecuencia</span>${f.frecuencia}</div>
+      <div class="dato"><span>Métricas</span>${(f.metricas||[]).join(', ') || '—'}</div>
+      <div class="dato"><span>Granularidad</span>${(f.granularidad||[]).join(' · ') || '—'}</div>
+      <div class="dato"><span>Responsable</span>${esc(f.responsable || 'Sin asignar')}</div>
+      <div class="dato"><span>Marca</span>${esc(f.marca || '—')}</div>
+    </div>`;
 }
 
 $('volver').onclick = () => {
