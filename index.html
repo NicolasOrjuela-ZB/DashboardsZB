@@ -106,6 +106,13 @@ a{color:inherit}
 }
 .etiqueta[aria-pressed="true"]{background:var(--tinta);color:var(--papel);border-color:var(--tinta)}
 
+.respuesta{
+  border-left:2px solid var(--tinta);padding:2px 0 2px 14px;
+  margin-bottom:20px;max-width:68ch;
+}
+.respuesta.pensando{border-left-color:var(--linea);color:var(--tinta-suave)}
+.respuesta button{font-weight:600;text-decoration:underline;margin-left:8px}
+
 /* ---------- Tarjetas ---------- */
 .grilla{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px}
 .tarjeta{
@@ -212,6 +219,7 @@ a{color:inherit}
         <button id="buscar">Buscar</button>
       </div>
       <div class="etiquetas" id="etiquetas"></div>
+      <div class="respuesta" id="respuesta" hidden></div>
       <div class="grilla" id="grilla"></div>
     </div>
 
@@ -403,31 +411,63 @@ async function pedirAcceso(f){
 }
 
 /* ---------- Búsqueda ----------
-   Por ahora filtra por texto. Acá es donde entra la capa de IA:
-   el mismo hueco, respondiendo en lenguaje natural sobre las
-   mismas fichas. Toda búsqueda queda registrada, y las que no
-   devuelven nada son el backlog de lo que falta construir.
+   La pregunta va a la Edge Function, que consulta a Claude con
+   las fichas que este usuario puede ver. El resultado filtra la
+   misma grilla: no es una pantalla aparte ni un chat.
 -------------------------------------------------------------- */
 $('buscar').onclick = buscar;
 $('consulta').addEventListener('keydown', e => { if (e.key === 'Enter') buscar(); });
 
 async function buscar(){
-  const q = $('consulta').value.trim().toLowerCase();
-  if (!q) { pintarGrilla(); return; }
+  const texto = $('consulta').value.trim();
+  const caja = $('respuesta');
 
-  const r = visibles().filter(f =>
+  if (!texto){ caja.hidden = true; pintarGrilla(); return; }
+
+  caja.hidden = false;
+  caja.className = 'respuesta pensando';
+  caja.textContent = 'Buscando…';
+
+  const { data, error } = await db.functions.invoke('buscar', {
+    body: { consulta: texto, contexto: ctxActivo }
+  });
+
+  if (error || data?.error){
+    // Si la función no está desplegada todavía, el buscador sigue
+    // sirviendo por texto en vez de dejar la pantalla muerta.
+    const r = porTexto(texto);
+    caja.className = 'respuesta pensando';
+    caja.textContent = `Búsqueda por texto: ${r.length} ${r.length === 1 ? 'reporte' : 'reportes'}.`;
+    pintarGrilla(r);
+    return;
+  }
+
+  const encontrados = data.ids
+    .map(id => fichas.find(f => f.id === id))
+    .filter(Boolean);
+
+  caja.className = 'respuesta';
+  caja.textContent = data.mensaje || '';
+
+  if (!encontrados.length){
+    const b = document.createElement('button');
+    b.textContent = 'Pedir este reporte';
+    b.onclick = () => {
+      caja.textContent = 'Anotado. Queda en la lista de reportes por construir.';
+    };
+    caja.appendChild(b);
+  }
+
+  pintarGrilla(encontrados);
+}
+
+function porTexto(q){
+  const s = q.toLowerCase();
+  return visibles().filter(f =>
     (f.titulo + ' ' + f.que_responde + ' ' +
      (f.metricas||[]).join(' ') + ' ' + (f.tags||[]).join(' ')
-    ).toLowerCase().includes(q)
+    ).toLowerCase().includes(s)
   );
-
-  pintarGrilla(r);
-  db.from('consultas').insert({
-    perfil_id: sesion.user.id,
-    texto: $('consulta').value.trim(),
-    contexto: ctxActivo === 'todos' ? null : ctxActivo,
-    resultados: r.length
-  }).then(() => {});
 }
 
 /* ---------- Utilidades ---------- */
