@@ -153,10 +153,25 @@ a{color:inherit}
    mantiene. */
 #detalle{display:none}
 .volver{margin-bottom:14px;font-weight:600;text-decoration:underline}
+/* El lienzo de Power BI, Looker y Tableau es de tamaño fijo: el
+   embed escala para entrar y rellena el resto con blanco. Por eso
+   el marco sigue la proporción del reporte y no el alto de la
+   ventana. 'alto' es para HTML propios y reportes que scrollean,
+   que no tienen lienzo fijo. */
 .marco{
+  width:100%;
+  max-width:calc((100vh - 190px) * 16 / 9);
+  aspect-ratio:16 / 9;
+  margin-inline:auto;
   border:1px solid var(--linea);border-radius:var(--radio);
   background:var(--tarjeta);overflow:hidden;
-  height:calc(100vh - 150px);min-height:440px;
+}
+.marco[data-proporcion="4:3"]{
+  aspect-ratio:4 / 3;
+  max-width:calc((100vh - 190px) * 4 / 3);
+}
+.marco[data-proporcion="alto"]{
+  aspect-ratio:auto;max-width:none;height:calc(100vh - 190px);min-height:440px;
 }
 .marco iframe{width:100%;height:100%;border:none;display:block}
 .ficha{margin-top:26px;padding-top:20px;border-top:1px solid var(--linea)}
@@ -358,6 +373,7 @@ async function verDashboard(f){
 
   $('catalogo').style.display = 'none';
   $('detalle').style.display = 'block';
+  document.querySelector('.marco').dataset.proporcion = f.proporcion || '16:9';
   $('embed').src = url || 'about:blank';
 
   $('ficha').innerHTML = `
