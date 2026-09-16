@@ -177,6 +177,20 @@ a{color:inherit}
   font-weight:600;text-decoration:underline;
 }
 
+/* ---------- Pedidos ---------- */
+#pedidos{display:none;max-width:720px}
+#pedidos h1{font-size:22px;letter-spacing:-.02em;margin-bottom:6px}
+#pedidos .intro{color:var(--tinta-suave);margin-bottom:24px}
+.pedido{
+  display:flex;gap:16px;align-items:center;flex-wrap:wrap;
+  padding:14px 0;border-top:1px solid var(--linea);
+}
+.pedido .de{flex:1;min-width:220px}
+.pedido .de strong{font-weight:600}
+.pedido .de span{display:block;color:var(--tinta-suave);font-size:14px;margin-top:2px}
+.pedido .si{font-weight:600;text-decoration:underline}
+.pedido .no{color:var(--tinta-suave);text-decoration:underline}
+
 /* ---------- Detalle ----------
    El dashboard manda: ocupa el ancho completo y casi todo el
    alto de la ventana. La ficha queda debajo, al alcance de un
@@ -231,6 +245,7 @@ a{color:inherit}
     <div class="marca">Dashboards ZB</div>
     <div class="contextos" id="contextos"></div>
     <button class="cargar" id="irAlta" hidden>+ Cargar dashboard</button>
+    <button class="cargar" id="irPedidos" hidden>Pedidos de acceso</button>
     <div class="pie">
       <div id="quien"></div>
       <button id="salir">Salir</button>
@@ -319,11 +334,26 @@ a{color:inherit}
           <input id="a-tags" placeholder="digital, performance"></div>
       </div>
 
+      <div class="fila">
+        <div class="f ancho"><label for="a-abierto">Quién puede verlo</label>
+          <select id="a-abierto">
+            <option value="si">Todo el equipo de ZetaBé</option>
+            <option value="no">Restringido — solo a quien se le otorgue</option>
+          </select>
+          <div class="pista">Clientes y proveedores nunca lo ven salvo que se les otorgue explícitamente, sin importar esta opción.</div></div>
+      </div>
+
       <div class="acciones">
         <button class="principal" id="a-guardar">Cargar dashboard</button>
         <button class="cancelar" id="a-cancelar">Cancelar</button>
       </div>
       <p class="error" id="a-error" hidden></p>
+    </section>
+
+    <section id="pedidos">
+      <h1>Pedidos de acceso</h1>
+      <p class="intro">Aprobar otorga el acceso a ese reporte para esa persona, nada más.</p>
+      <div id="listaPedidos"></div>
     </section>
 
     <div id="detalle">
@@ -389,8 +419,9 @@ async function abrir(){
   $('quien').textContent = sesion.user.email;
 
   const { data: yo } = await db.from('perfiles')
-    .select('puede_cargar').eq('id', sesion.user.id).single();
+    .select('puede_cargar,admin').eq('id', sesion.user.id).single();
   if (yo?.puede_cargar) $('irAlta').hidden = false;
+  if (yo?.admin){ $('irPedidos').hidden = false; contarPedidos(); }
 
   pintarContextos();
   await cargar();
@@ -425,9 +456,7 @@ function pintarContextos(){
     b.innerHTML = `${nombre}<span class="cuenta">${n}</span>`;
     b.onclick = () => {
       ctxActivo = valor; tagsActivos.clear();
-      $('alta').style.display = 'none';
-      $('detalle').style.display = 'none';
-      $('catalogo').style.display = 'block';
+      soloVer('catalogo');
       pintarContextos(); pintarEtiquetas(); pintarGrilla();
     };
     $('contextos').appendChild(b);
@@ -490,8 +519,7 @@ function pintarGrilla(lista){
 async function verDashboard(f){
   const { data: url } = await db.rpc('get_embed_url', { d: f.id });
 
-  $('catalogo').style.display = 'none';
-  $('detalle').style.display = 'block';
+  soloVer('detalle');
   document.querySelector('.marco').dataset.proporcion = f.proporcion || '16:9';
   $('embed').src = url || 'about:blank';
 
@@ -510,8 +538,7 @@ async function verDashboard(f){
 
 $('volver').onclick = () => {
   $('embed').src = 'about:blank';
-  $('detalle').style.display = 'none';
-  $('catalogo').style.display = 'block';
+  soloVer('catalogo');
 };
 
 /* ---------- Pedido de acceso ---------- */
@@ -519,6 +546,70 @@ async function pedirAcceso(f){
   const { error } = await db.from('solicitudes_acceso')
     .insert({ dashboard_id: f.id, perfil_id: sesion.user.id });
   alert(error ? 'No se pudo registrar el pedido.' : `Pedido enviado: ${f.titulo}`);
+  if (!error) contarPedidos().catch(() => {});
+}
+
+/* ---------- Pedidos de acceso ----------
+   Sin correo: el admin los ve al entrar. Notificar por mail
+   exige un servicio de envío y un secreto más; se suma cuando
+   haya volumen que lo justifique.
+-------------------------------------------------------------- */
+function soloVer(id){
+  for (const s of ['catalogo','alta','pedidos','detalle'])
+    $(s).style.display = s === id ? 'block' : 'none';
+}
+
+async function contarPedidos(){
+  const { count } = await db.from('pedidos')
+    .select('id', { count: 'exact', head: true });
+  $('irPedidos').textContent = count
+    ? `Pedidos de acceso (${count})`
+    : 'Pedidos de acceso';
+}
+
+$('irPedidos').onclick = async () => {
+  soloVer('pedidos');
+  const caja = $('listaPedidos');
+  caja.innerHTML = '<p class="intro">Cargando…</p>';
+
+  const { data, error } = await db.from('pedidos').select('*');
+  if (error){ caja.innerHTML = '<p class="intro">No se pudieron leer los pedidos.</p>'; return; }
+
+  if (!data.length){
+    caja.innerHTML = `<div class="vacio"><strong>No hay pedidos pendientes.</strong>
+      Cuando alguien del equipo pida acceso a un reporte restringido, aparece acá.</div>`;
+    return;
+  }
+
+  caja.innerHTML = '';
+  for (const p of data){
+    const fila = document.createElement('div');
+    fila.className = 'pedido';
+    fila.innerHTML = `
+      <div class="de">
+        <strong>${esc(p.solicitante_nombre || p.solicitante)}</strong>
+        <span>${esc(p.dashboard)} · ${esc(p.contexto)}</span>
+      </div>`;
+
+    const si = document.createElement('button');
+    si.className = 'si'; si.textContent = 'Dar acceso';
+    si.onclick = () => resolver('aprobar_solicitud', p.id, fila);
+
+    const no = document.createElement('button');
+    no.className = 'no'; no.textContent = 'Rechazar';
+    no.onclick = () => resolver('rechazar_solicitud', p.id, fila);
+
+    fila.append(si, no);
+    caja.appendChild(fila);
+  }
+};
+
+async function resolver(fn, id, fila){
+  const { error } = await db.rpc(fn, { s: id });
+  if (error){ alert('No se pudo: ' + error.message); return; }
+  fila.remove();
+  await contarPedidos();
+  await cargar();
 }
 
 /* ---------- Alta ----------
@@ -530,9 +621,7 @@ async function pedirAcceso(f){
 const MIN_RESPONDE = 40;
 
 $('irAlta').onclick = async () => {
-  $('catalogo').style.display = 'none';
-  $('detalle').style.display = 'none';
-  $('alta').style.display = 'block';
+  soloVer('alta');
 
   const { data: marcas } = await db.from('marcas').select('nombre').order('nombre');
   $('marcas-lista').innerHTML = (marcas || [])
@@ -549,8 +638,7 @@ $('irAlta').onclick = async () => {
 
 $('a-cancelar').onclick = cerrarAlta;
 function cerrarAlta(){
-  $('alta').style.display = 'none';
-  $('catalogo').style.display = 'block';
+  soloVer('catalogo');
   $('a-error').hidden = true;
 }
 
@@ -615,6 +703,7 @@ $('a-guardar').onclick = async () => {
     tags:         lista('a-tags'),
     frecuencia:   $('a-frecuencia').value,
     responsable_id: $('a-responsable').value || null,
+    abierto_interno: $('a-abierto').value === 'si',
     refresco_origen: 'manual'
   });
 
