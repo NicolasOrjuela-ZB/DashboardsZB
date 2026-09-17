@@ -170,6 +170,13 @@ a{color:inherit}
 .f input:focus,.f select:focus,.f textarea:focus{outline:2px solid var(--tinta);outline-offset:-1px}
 .f .pista{font-size:13px;color:var(--tinta-suave);margin-top:4px}
 .f .pista.corto{color:var(--caido)}
+.selector{display:flex;flex-wrap:wrap;gap:6px;padding:2px 0}
+.selector .op{
+  padding:5px 11px;border:1px solid var(--linea);border-radius:99px;
+  font-size:14px;color:var(--tinta-suave);background:var(--tarjeta);
+}
+.selector .op[aria-pressed="true"]{background:var(--tinta);color:var(--papel);border-color:var(--tinta)}
+.selector .nueva{color:var(--tinta);border-style:dashed;font-weight:600}
 .acciones{display:flex;gap:10px;align-items:center;margin-top:8px}
 .acciones .principal{width:auto;padding:10px 20px;margin:0}
 .acciones .cancelar{text-decoration:underline;color:var(--tinta-suave)}
@@ -177,6 +184,20 @@ a{color:inherit}
   margin:0 20px 18px;padding:8px 0;text-align:left;
   font-weight:600;text-decoration:underline;
 }
+
+/* ---------- Huecos ---------- */
+#huecos{display:none;max-width:720px}
+#huecos h1{font-size:22px;letter-spacing:-.02em;margin-bottom:6px}
+#huecos .intro{color:var(--tinta-suave);margin-bottom:22px;max-width:58ch}
+.resumen{
+  display:flex;gap:36px;flex-wrap:wrap;
+  padding:16px 0 20px;border-bottom:1px solid var(--linea);margin-bottom:6px;
+}
+.resumen div span{display:block;color:var(--tinta-suave);font-size:13px;margin-bottom:2px}
+.resumen div strong{font-size:22px;font-weight:600;letter-spacing:-.02em}
+.hueco{display:flex;gap:16px;align-items:baseline;padding:13px 0;border-top:1px solid var(--linea)}
+.hueco .q{flex:1;min-width:0}
+.hueco .n{color:var(--tinta-suave);font-size:14px;white-space:nowrap}
 
 /* ---------- Pedidos ---------- */
 #pedidos{display:none;max-width:720px}
@@ -251,6 +272,7 @@ a{color:inherit}
     <div class="contextos" id="contextos"></div>
     <button class="cargar" id="irAlta" hidden>+ Cargar dashboard</button>
     <button class="cargar" id="irPedidos" hidden>Pedidos de acceso</button>
+    <button class="cargar" id="irHuecos" hidden>Lo que buscan y no existe</button>
     <div class="pie">
       <div id="quien"></div>
       <button id="salir">Salir</button>
@@ -335,8 +357,12 @@ a{color:inherit}
           </select></div>
         <div class="f"><label for="a-responsable">Responsable</label>
           <select id="a-responsable"></select></div>
-        <div class="f"><label for="a-tags">Tags</label>
-          <input id="a-tags" placeholder="digital, performance"></div>
+      </div>
+
+      <div class="fila">
+        <div class="f ancho"><label>Etiquetas</label>
+          <div class="selector" id="a-tags"></div>
+          <div class="pista" id="a-tags-pista">Elegí una o varias.</div></div>
       </div>
 
       <div class="fila">
@@ -354,6 +380,13 @@ a{color:inherit}
         <button class="cancelar" id="a-archivar" hidden>Archivar</button>
       </div>
       <p class="error" id="a-error" hidden></p>
+    </section>
+
+    <section id="huecos">
+      <h1>Lo que buscan y no existe</h1>
+      <p class="intro">Cada búsqueda que no devolvió ningún reporte. No es una lista de errores: es lo que el equipo necesita y todavía nadie construyó.</p>
+      <div id="resumenUso"></div>
+      <div id="listaHuecos"></div>
     </section>
 
     <section id="pedidos">
@@ -432,7 +465,11 @@ async function abrir(){
     .select('puede_cargar,admin').eq('id', sesion.user.id).single();
   if (yo?.puede_cargar) $('irAlta').hidden = false;
   esAdmin = !!yo?.admin;
-  if (esAdmin){ $('irPedidos').hidden = false; contarPedidos(); }
+  if (esAdmin){
+    $('irPedidos').hidden = false;
+    $('irHuecos').hidden = false;
+    contarPedidos();
+  }
 
   pintarContextos();
   await cargar();
@@ -563,13 +600,61 @@ async function pedirAcceso(f){
   if (!error) contarPedidos().catch(() => {});
 }
 
+/* ---------- Lo que buscan y no existe ----------
+   La otra mitad del buscador. Una búsqueda sin resultados no es
+   un fallo: es un pedido de reporte que nadie levantó. Acá se
+   acumulan para decidir qué construir con evidencia en vez de
+   con intuición.
+-------------------------------------------------------------- */
+$('irHuecos').onclick = async () => {
+  soloVer('huecos');
+  $('resumenUso').innerHTML = '';
+  $('listaHuecos').innerHTML = '<p class="intro">Cargando…</p>';
+
+  const [{ data: u }, { data: h }] = await Promise.all([
+    db.from('uso').select('*').single(),
+    db.from('huecos').select('*').limit(50)
+  ]);
+
+  if (u){
+    const tasa = u.busquedas
+      ? Math.round(100 * (u.busquedas - u.sin_resultado) / u.busquedas)
+      : 0;
+    $('resumenUso').innerHTML = `
+      <div class="resumen">
+        <div><span>Búsquedas</span><strong>${u.busquedas}</strong></div>
+        <div><span>Con resultado</span><strong>${tasa}%</strong></div>
+        <div><span>Personas</span><strong>${u.personas}</strong></div>
+        <div><span>Últimos 30 días</span><strong>${u.ultimos_30}</strong></div>
+      </div>`;
+  }
+
+  const caja = $('listaHuecos');
+  if (!h?.length){
+    caja.innerHTML = `<div class="vacio"><strong>Todavía no hay búsquedas sin respuesta.</strong>
+      Cuando alguien pregunte por algo que el catálogo no cubre, aparece acá.</div>`;
+    return;
+  }
+
+  caja.innerHTML = '';
+  for (const x of h){
+    const fila = document.createElement('div');
+    fila.className = 'hueco';
+    const veces = x.veces === 1 ? '1 vez' : `${x.veces} veces`;
+    const gente = x.personas === 1 ? '1 persona' : `${x.personas} personas`;
+    fila.innerHTML = `<div class="q">${esc(x.busqueda)}</div>
+                      <div class="n">${veces} · ${gente} · ${desde(x.ultima)}</div>`;
+    caja.appendChild(fila);
+  }
+};
+
 /* ---------- Pedidos de acceso ----------
    Sin correo: el admin los ve al entrar. Notificar por mail
    exige un servicio de envío y un secreto más; se suma cuando
    haya volumen que lo justifique.
 -------------------------------------------------------------- */
 function soloVer(id){
-  for (const s of ['catalogo','alta','pedidos','detalle'])
+  for (const s of ['catalogo','alta','pedidos','huecos','detalle'])
     $(s).style.display = s === id ? 'block' : 'none';
 }
 
@@ -634,7 +719,52 @@ async function resolver(fn, id, fila){
 -------------------------------------------------------------- */
 const MIN_RESPONDE = 40;
 
-let editandoId = null;   // null = alta, uuid = edición
+let editandoId = null;        // null = alta, uuid = edición
+let etiquetas = [];           // vocabulario cerrado
+const tagsElegidos = new Set();
+
+async function pintarSelectorTags(){
+  const { data } = await db.from('etiquetas').select('slug,nombre').order('nombre');
+  etiquetas = data || [];
+  const caja = $('a-tags');
+  caja.innerHTML = '';
+
+  for (const e of etiquetas){
+    const b = document.createElement('button');
+    b.className = 'op';
+    b.textContent = e.nombre;
+    b.setAttribute('aria-pressed', String(tagsElegidos.has(e.slug)));
+    b.onclick = () => {
+      tagsElegidos.has(e.slug) ? tagsElegidos.delete(e.slug) : tagsElegidos.add(e.slug);
+      b.setAttribute('aria-pressed', String(tagsElegidos.has(e.slug)));
+    };
+    caja.appendChild(b);
+  }
+
+  // Ampliar el vocabulario es una decisión de admin. Si pudiera
+  // cualquiera, volvemos al campo libre con pasos de más.
+  if (esAdmin){
+    const n = document.createElement('button');
+    n.className = 'op nueva';
+    n.textContent = '+ Nueva etiqueta';
+    n.onclick = async () => {
+      const nombre = prompt('Nombre de la etiqueta:');
+      if (!nombre?.trim()) return;
+      const slug = nombre.trim().toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      if (!slug) return;
+      const { error } = await db.from('etiquetas')
+        .insert({ slug, nombre: nombre.trim() });
+      if (error && !error.message.includes('duplicate')){
+        alert('No se pudo crear: ' + error.message); return;
+      }
+      tagsElegidos.add(slug);
+      await pintarSelectorTags();
+    };
+    caja.appendChild(n);
+  }
+}
 
 async function abrirFormulario(){
   soloVer('alta');
@@ -642,6 +772,8 @@ async function abrirFormulario(){
   const { data: marcas } = await db.from('marcas').select('nombre').order('nombre');
   $('marcas-lista').innerHTML = (marcas || [])
     .map(m => `<option value="${esc(m.nombre)}">`).join('');
+
+  await pintarSelectorTags();
 
   const { data: gente } = await db.from('perfiles')
     .select('id,nombre,email').eq('tipo', 'interno').order('email');
@@ -692,7 +824,9 @@ $('irEditar').onclick = async () => {
   $('a-responde').value     = d.que_responde;
   $('a-metricas').value     = (d.metricas || []).join(', ');
   $('a-granularidad').value = (d.granularidad || []).join(', ');
-  $('a-tags').value         = (d.tags || []).join(', ');
+  tagsElegidos.clear();
+  (d.tags || []).forEach(t => tagsElegidos.add(t));
+  await pintarSelectorTags();
   $('a-frecuencia').value   = d.frecuencia;
   $('a-abierto').value      = d.abierto_interno ? 'si' : 'no';
   if (d.responsable_id) $('a-responsable').value = d.responsable_id;
@@ -711,8 +845,10 @@ $('a-archivar').onclick = async () => {
 };
 
 function limpiarFormulario(){
-  ['a-titulo','a-url','a-responde','a-metricas','a-granularidad','a-tags','a-marca']
+  ['a-titulo','a-url','a-responde','a-metricas','a-granularidad','a-marca']
     .forEach(id => $(id).value = '');
+  tagsElegidos.clear();
+  pintarSelectorTags();
   $('a-abierto').value = 'si';
   $('a-responde').dispatchEvent(new Event('input'));
 }
@@ -781,7 +917,7 @@ $('a-guardar').onclick = async () => {
     que_responde: responde,
     metricas:     lista('a-metricas'),
     granularidad: lista('a-granularidad'),
-    tags:         lista('a-tags'),
+    tags:         [...tagsElegidos],
     frecuencia:   $('a-frecuencia').value,
     responsable_id: $('a-responsable').value || null,
     abierto_interno: $('a-abierto').value === 'si',
