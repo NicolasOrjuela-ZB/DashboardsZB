@@ -121,3 +121,26 @@
   display:block;color:var(--suave);margin-bottom:3px;
   font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
 }
+
+/* ---------- Accesos dentro de la ficha ---------- */
+#listaAccesos{margin-bottom:10px}
+#listaAccesos .pista{font-size:13px;color:var(--suave)}
+.acceso{
+  display:flex;gap:10px;align-items:baseline;
+  padding:8px 0;border-bottom:1px solid var(--linea);font-size:14px;
+}
+.acceso span{font-weight:600}
+.acceso em{flex:1;font-style:normal;color:var(--suave);font-size:13px}
+.acceso button{color:var(--suave);text-decoration:underline;font-size:13px}
+.acceso button:hover{color:var(--caido)}
+.sumar{display:flex;gap:8px}
+.sumar select{
+  flex:1;padding:9px 11px;border:1px solid var(--linea);
+  background:var(--tarjeta);border-radius:var(--radio);
+}
+.sumar select:focus{outline:2px solid var(--texto);outline-offset:-1px}
+.sumar button{
+  padding:9px 16px;border:1px solid var(--texto);border-radius:var(--radio);
+  font-weight:600;font-size:14px;white-space:nowrap;
+}
+.sumar button:hover{background:var(--texto);color:var(--fondo)}
