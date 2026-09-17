@@ -197,7 +197,8 @@ a{color:inherit}
    scroll, para cuando hace falta chequear qué mide o quién lo
    mantiene. */
 #detalle{display:none}
-.volver{margin-bottom:14px;font-weight:600;text-decoration:underline}
+.acciones-detalle{display:flex;gap:18px;margin-bottom:14px}
+.volver{font-weight:600;text-decoration:underline}
 /* El lienzo de Power BI, Looker y Tableau es de tamaño fijo: el
    embed escala para entrar y rellena el resto con blanco. Por eso
    el marco sigue la proporción del reporte y no el alto de la
@@ -264,7 +265,7 @@ a{color:inherit}
     </div>
 
     <section id="alta">
-      <h1>Cargar un dashboard</h1>
+      <h1 id="a-encabezado">Cargar un dashboard</h1>
       <p class="intro">Lo que escribas acá es lo que va a permitir que alguien lo encuentre sin saber cómo se llama. Vale la pena el minuto extra.</p>
 
       <div class="fila">
@@ -346,6 +347,7 @@ a{color:inherit}
       <div class="acciones">
         <button class="principal" id="a-guardar">Cargar dashboard</button>
         <button class="cancelar" id="a-cancelar">Cancelar</button>
+        <button class="cancelar" id="a-archivar" hidden>Archivar</button>
       </div>
       <p class="error" id="a-error" hidden></p>
     </section>
@@ -357,7 +359,10 @@ a{color:inherit}
     </section>
 
     <div id="detalle">
-      <button class="volver" id="volver">← Volver al catálogo</button>
+      <div class="acciones-detalle">
+        <button class="volver" id="volver">← Volver al catálogo</button>
+        <button class="volver" id="irEditar" hidden>Editar ficha</button>
+      </div>
       <div class="marco"><iframe id="embed" title="Dashboard"></iframe></div>
       <section class="ficha" id="ficha"></section>
     </div>
@@ -389,6 +394,7 @@ const FRESCURA = {
 };
 
 let sesion = null, fichas = [], ctxActivo = 'todos', tagsActivos = new Set();
+let esAdmin = false;
 
 const $ = id => document.getElementById(id);
 
@@ -421,7 +427,8 @@ async function abrir(){
   const { data: yo } = await db.from('perfiles')
     .select('puede_cargar,admin').eq('id', sesion.user.id).single();
   if (yo?.puede_cargar) $('irAlta').hidden = false;
-  if (yo?.admin){ $('irPedidos').hidden = false; contarPedidos(); }
+  esAdmin = !!yo?.admin;
+  if (esAdmin){ $('irPedidos').hidden = false; contarPedidos(); }
 
   pintarContextos();
   await cargar();
@@ -520,7 +527,10 @@ async function verDashboard(f){
   const { data: url } = await db.rpc('get_embed_url', { d: f.id });
 
   soloVer('detalle');
-  document.querySelector('.marco').dataset.proporcion = f.proporcion || '16:9';
+  const marco = document.querySelector('.marco');
+  marco.dataset.proporcion = f.proporcion || '16:9';
+  marco.dataset.id = f.id;
+  $('irEditar').hidden = !esAdmin;
   $('embed').src = url || 'about:blank';
 
   $('ficha').innerHTML = `
@@ -620,7 +630,9 @@ async function resolver(fn, id, fila){
 -------------------------------------------------------------- */
 const MIN_RESPONDE = 40;
 
-$('irAlta').onclick = async () => {
+let editandoId = null;   // null = alta, uuid = edición
+
+async function abrirFormulario(){
   soloVer('alta');
 
   const { data: marcas } = await db.from('marcas').select('nombre').order('nombre');
@@ -633,8 +645,73 @@ $('irAlta').onclick = async () => {
     .map(p => `<option value="${p.id}"${p.id === sesion.user.id ? ' selected' : ''}>${esc(p.nombre || p.email)}</option>`)
     .join('');
 
+}
+
+$('irAlta').onclick = async () => {
+  editandoId = null;
+  await abrirFormulario();
+  limpiarFormulario();
+  $('a-encabezado').textContent = 'Cargar un dashboard';
+  $('a-guardar').textContent = 'Cargar dashboard';
+  $('a-archivar').hidden = true;
   if (ctxActivo !== 'todos') $('a-contexto').value = ctxActivo;
 };
+
+/* ---------- Edición ----------
+   El admin corrige la ficha sin pasar por Supabase. Se lee la
+   fila cruda de dashboards y no la vista, porque el catálogo no
+   expone la URL ni el id del responsable.
+-------------------------------------------------------------- */
+$('irEditar').onclick = async () => {
+  const id = document.querySelector('.marco').dataset.id;
+  const { data: d, error } = await db.from('dashboards')
+    .select('*').eq('id', id).single();
+  if (error){ alert('No se pudo leer la ficha: ' + error.message); return; }
+
+  editandoId = id;
+  await abrirFormulario();
+
+  const { data: m } = d.marca_id
+    ? await db.from('marcas').select('nombre').eq('id', d.marca_id).single()
+    : { data: null };
+
+  $('a-encabezado').textContent = 'Editar ficha';
+  $('a-guardar').textContent = 'Guardar cambios';
+  $('a-archivar').hidden = false;
+
+  $('a-titulo').value       = d.titulo;
+  $('a-marca').value        = m?.nombre ?? '';
+  $('a-contexto').value     = d.contexto;
+  $('a-herramienta').value  = d.herramienta;
+  $('a-proporcion').value   = d.proporcion;
+  $('a-url').value          = d.url;
+  $('a-responde').value     = d.que_responde;
+  $('a-metricas').value     = (d.metricas || []).join(', ');
+  $('a-granularidad').value = (d.granularidad || []).join(', ');
+  $('a-tags').value         = (d.tags || []).join(', ');
+  $('a-frecuencia').value   = d.frecuencia;
+  $('a-abierto').value      = d.abierto_interno ? 'si' : 'no';
+  if (d.responsable_id) $('a-responsable').value = d.responsable_id;
+  $('a-responde').dispatchEvent(new Event('input'));
+};
+
+$('a-archivar').onclick = async () => {
+  if (!editandoId) return;
+  if (!confirm('El reporte deja de aparecer en el catálogo. Su ficha y sus permisos se conservan. ¿Archivar?')) return;
+  const { error } = await db.from('dashboards')
+    .update({ activo: false }).eq('id', editandoId);
+  if (error){ alert('No se pudo archivar: ' + error.message); return; }
+  editandoId = null;
+  cerrarAlta();
+  await cargar();
+};
+
+function limpiarFormulario(){
+  ['a-titulo','a-url','a-responde','a-metricas','a-granularidad','a-tags','a-marca']
+    .forEach(id => $(id).value = '');
+  $('a-abierto').value = 'si';
+  $('a-responde').dispatchEvent(new Event('input'));
+}
 
 $('a-cancelar').onclick = cerrarAlta;
 function cerrarAlta(){
@@ -690,7 +767,7 @@ $('a-guardar').onclick = async () => {
     }
   }
 
-  const { error } = await db.from('dashboards').insert({
+  const ficha = {
     titulo,
     contexto:     $('a-contexto').value,
     herramienta:  $('a-herramienta').value,
@@ -705,21 +782,22 @@ $('a-guardar').onclick = async () => {
     responsable_id: $('a-responsable').value || null,
     abierto_interno: $('a-abierto').value === 'si',
     refresco_origen: 'manual'
-  });
+  };
+
+  const { error } = editandoId
+    ? await db.from('dashboards').update(ficha).eq('id', editandoId)
+    : await db.from('dashboards').insert(ficha);
 
   boton.disabled = false;
 
   if (error){
-    err.textContent = 'No se pudo cargar: ' + error.message;
+    err.textContent = 'No se pudo guardar: ' + error.message;
     err.hidden = false;
     return;
   }
 
-  ['a-titulo','a-url','a-responde','a-metricas','a-granularidad','a-tags','a-marca']
-    .forEach(id => $(id).value = '');
-  $('a-cuenta').className = 'pista';
-  $('a-cuenta').textContent = 'Contá qué muestra y para qué decisión sirve.';
-
+  editandoId = null;
+  limpiarFormulario();
   cerrarAlta();
   await cargar();
 };
