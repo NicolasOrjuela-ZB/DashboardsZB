@@ -135,6 +135,17 @@
           <div class="pista" data-t="alta.quien.pista"></div></div>
       </div>
 
+      <div class="fila" id="bloqueAccesos" hidden>
+        <div class="f ancho">
+          <label data-t="accesos.titulo"></label>
+          <div id="listaAccesos"></div>
+          <div class="sumar">
+            <select id="ac-destinatario"></select>
+            <button id="ac-dar" data-t="accesos.dar"></button>
+          </div>
+        </div>
+      </div>
+
       <div class="acciones">
         <button class="principal" id="a-guardar"></button>
         <button class="cancelar" id="a-cancelar" data-t="alta.cancelar"></button>
@@ -150,23 +161,6 @@
       <div id="listaHuecos"></div>
     </section>
 
-    <section id="accesos">
-      <h1 data-t="accesos.titulo"></h1>
-      <p class="intro" id="accesos-de"></p>
-
-      <div class="fila">
-        <div class="f"><label data-t="accesos.agregar"></label>
-          <select id="ac-destinatario"></select></div>
-        <div class="f" style="flex:0 0 auto;justify-content:flex-end">
-          <button class="principal" id="ac-dar" style="width:auto;padding:10px 20px;margin:0" data-t="accesos.dar"></button></div>
-      </div>
-
-      <div id="listaAccesos"></div>
-      <div class="acciones">
-        <button class="cancelar" id="ac-volver" data-t="detalle.volver"></button>
-      </div>
-    </section>
-
     <section id="pedidos">
       <h1 data-t="pedidos.titulo"></h1>
       <p class="intro" data-t="pedidos.intro"></p>
@@ -177,7 +171,6 @@
       <div class="acciones-detalle">
         <button class="volver" id="volver" data-t="detalle.volver"></button>
         <button class="volver" id="irEditar" hidden data-t="detalle.editar"></button>
-        <button class="volver" id="irAccesos" hidden data-t="detalle.accesos"></button>
       </div>
       <div class="marco"><iframe id="embed" title="Dashboard"></iframe></div>
       <section class="ficha" id="ficha"></section>
@@ -230,14 +223,10 @@ const TEXTOS = {
     'grid.vacio':'No hay reportes acá todavía.',
     'grid.vacio.sub':'Si esperabas encontrar uno, pedilo y queda registrado como pendiente de construir.',
     'detalle.volver':'← Volver al catálogo', 'detalle.editar':'Editar ficha',
-    'detalle.accesos':'Accesos',
-    'accesos.titulo':'Quién puede ver este reporte',
-    'accesos.agregar':'Dar acceso a', 'accesos.dar':'Dar acceso',
+    'accesos.titulo':'Accesos explícitos',
+'accesos.dar':'Dar acceso',
     'accesos.quitar':'Quitar',
-    'accesos.abierto':'Abierto a todo el equipo de ZetaBé. Lo de abajo son accesos adicionales, para clientes, proveedores o grupos.',
-    'accesos.restringido':'Restringido. Solo quien esté en esta lista puede verlo.',
-    'accesos.vacio':'Todavía nadie tiene acceso explícito.',
-    'accesos.vacio.sub':'Elegí a quién dárselo en el selector de arriba.',
+    'accesos.vacio':'Nadie tiene acceso explícito todavía.',
     'accesos.grupo':'grupo',
     'ficha.actualizacion':'Actualización', 'ficha.frecuencia':'Frecuencia',
     'ficha.metricas':'Métricas', 'ficha.granularidad':'Granularidad',
@@ -304,14 +293,10 @@ const TEXTOS = {
     'grid.vacio':'Ainda não há relatórios aqui.',
     'grid.vacio.sub':'Se você esperava encontrar um, peça e ele fica registrado como pendente de construção.',
     'detalle.volver':'← Voltar ao catálogo', 'detalle.editar':'Editar ficha',
-    'detalle.accesos':'Acessos',
-    'accesos.titulo':'Quem pode ver este relatório',
-    'accesos.agregar':'Dar acesso a', 'accesos.dar':'Dar acesso',
+    'accesos.titulo':'Acessos explícitos',
+'accesos.dar':'Dar acesso',
     'accesos.quitar':'Remover',
-    'accesos.abierto':'Aberto a toda a equipe da ZetaBé. Abaixo estão os acessos adicionais, para clientes, fornecedores ou grupos.',
-    'accesos.restringido':'Restrito. Só quem estiver nesta lista pode ver.',
-    'accesos.vacio':'Ainda ninguém tem acesso explícito.',
-    'accesos.vacio.sub':'Escolha para quem dar no seletor acima.',
+    'accesos.vacio':'Ninguém tem acesso explícito ainda.',
     'accesos.grupo':'grupo',
     'ficha.actualizacion':'Atualização', 'ficha.frecuencia':'Frequência',
     'ficha.metricas':'Métricas', 'ficha.granularidad':'Granularidade',
@@ -536,7 +521,6 @@ async function verDashboard(f){
   marco.dataset.proporcion = f.proporcion || '16:9';
   marco.dataset.id = f.id;
   $('irEditar').hidden = !esAdmin;
-  $('irAccesos').hidden = !esAdmin;
   $('embed').src = url || 'about:blank';
 
   $('ficha').innerHTML = `
@@ -612,21 +596,18 @@ $('irHuecos').onclick = async () => {
   }
 };
 
-/* ---------- Accesos por dashboard ----------
-   Un acceso también nace sin pedido previo: es el caso de un
-   cliente nuevo o de alguien de otro equipo. Otorgar y quitar
-   pasan por funciones de la base que verifican el rol, así el
-   botón es comodidad y no la regla.
--------------------------------------------------------------- */
-let dashAccesos = null;
+/* ---------- Accesos del dashboard ----------
+   Los accesos son un atributo del reporte, como su contexto o su
+   frecuencia: viven dentro de la ficha, debajo de quién puede
+   verlo. Un acceso también nace sin pedido previo — un cliente
+   nuevo, alguien de otro equipo — y ese era el caso que faltaba.
 
-$('irAccesos').onclick = async () => {
-  const f = fichas.find(x => x.id === document.querySelector('.marco').dataset.id);
-  if (!f) return;
-  dashAccesos = f;
-  soloVer('accesos');
-  $('accesos-de').textContent = f.titulo + ' — ' +
-    t(f.abierto_interno ? 'accesos.abierto' : 'accesos.restringido');
+   Otorgar y quitar pasan por funciones que verifican el rol en
+   la base: el control es comodidad, la regla vive abajo.
+-------------------------------------------------------------- */
+async function cargarAccesos(){
+  if (!esAdmin || !editandoId){ $('bloqueAccesos').hidden = true; return; }
+  $('bloqueAccesos').hidden = false;
 
   const { data: gente } = await db.from('destinatarios').select('*');
   $('ac-destinatario').innerHTML = (gente || [])
@@ -635,28 +616,25 @@ $('irAccesos').onclick = async () => {
     .join('');
 
   await pintarAccesos();
-};
+}
 
 async function pintarAccesos(){
   const caja = $('listaAccesos');
-  caja.innerHTML = `<p class="intro">${t('cargando')}</p>`;
-
   const { data } = await db.from('accesos_detalle')
-    .select('*').eq('dashboard_id', dashAccesos.id);
+    .select('*').eq('dashboard_id', editandoId);
 
   if (!data?.length){
-    caja.innerHTML = `<div class="vacio"><strong>${t('accesos.vacio')}</strong>${t('accesos.vacio.sub')}</div>`;
+    caja.innerHTML = `<p class="pista">${t('accesos.vacio')}</p>`;
     return;
   }
 
   caja.innerHTML = '';
   for (const a of data){
     const fila = document.createElement('div');
-    fila.className = 'pedido';
-    fila.innerHTML = `<div class="de"><strong>${esc(a.quien)}</strong>
-      <span>${esc(a.clase === 'grupo' ? t('accesos.grupo') : (a.email || ''))}</span></div>`;
+    fila.className = 'acceso';
+    fila.innerHTML = `<span>${esc(a.quien)}</span>
+      <em>${esc(a.clase === 'grupo' ? t('accesos.grupo') : (a.email || ''))}</em>`;
     const b = document.createElement('button');
-    b.className = 'no';
     b.textContent = t('accesos.quitar');
     b.onclick = async () => {
       const { error } = await db.rpc('quitar_acceso', { a: a.id });
@@ -671,14 +649,12 @@ async function pintarAccesos(){
 $('ac-dar').onclick = async () => {
   const [id, clase] = $('ac-destinatario').value.split('|');
   const { error } = await db.rpc('otorgar_acceso',
-    { d: dashAccesos.id, destinatario: id, clase });
+    { d: editandoId, destinatario: id, clase });
   if (error){ alert(t('alta.error') + error.message); return; }
   await pintarAccesos();
   await contarPedidos();
   await cargar();
 };
-
-$('ac-volver').onclick = () => { soloVer('catalogo'); $('embed').src = 'about:blank'; };
 
 /* ---------- Pedidos de acceso ----------
    Sin correo: el admin los ve al entrar. Notificar por mail
@@ -686,7 +662,7 @@ $('ac-volver').onclick = () => { soloVer('catalogo'); $('embed').src = 'about:bl
    haya volumen que lo justifique.
 -------------------------------------------------------------- */
 function soloVer(id){
-  for (const s of ['catalogo','alta','pedidos','huecos','accesos','detalle'])
+  for (const s of ['catalogo','alta','pedidos','huecos','detalle'])
     $(s).style.display = s === id ? 'block' : 'none';
 }
 
@@ -821,6 +797,7 @@ $('irAlta').onclick = async () => {
   $('a-encabezado').textContent = t('alta.nuevo');
   $('a-guardar').textContent = t('alta.guardar');
   $('a-archivar').hidden = true;
+  $('bloqueAccesos').hidden = true;
   if (ctxActivo !== 'todos') $('a-contexto').value = ctxActivo;
 };
 
@@ -862,6 +839,7 @@ $('irEditar').onclick = async () => {
   $('a-abierto').value      = d.abierto_interno ? 'si' : 'no';
   if (d.responsable_id) $('a-responsable').value = d.responsable_id;
   $('a-responde').dispatchEvent(new Event('input'));
+  await cargarAccesos();
 };
 
 $('a-archivar').onclick = async () => {
