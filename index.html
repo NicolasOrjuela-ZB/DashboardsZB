@@ -84,6 +84,12 @@ a{color:inherit}
 .ctx .cuenta{color:var(--tinta-suave);font-weight:400;font-size:13px;margin-left:6px}
 .pie{margin-top:auto;padding:20px;font-size:13px;color:var(--tinta-suave)}
 .pie button{text-decoration:underline;margin-top:4px}
+.idiomas{display:flex;gap:6px;margin:8px 0 2px}
+.idiomas button{
+  padding:2px 8px;border:1px solid var(--linea);border-radius:99px;
+  font-size:12px;color:var(--tinta-suave);background:var(--tarjeta);
+}
+.idiomas button[aria-pressed="true"]{background:var(--tinta);color:var(--papel);border-color:var(--tinta)}
 
 #panel{padding:26px 30px 60px;max-width:none}
 #catalogo{max-width:1180px}
@@ -258,10 +264,10 @@ a{color:inherit}
 <section id="ingreso">
   <div class="caja">
     <h1>Dashboards ZB</h1>
-    <p>Todos los reportes del equipo, en un solo lugar.</p>
-    <input class="campo" id="correo" type="email" placeholder="Correo" autocomplete="username">
-    <input class="campo" id="clave" type="password" placeholder="Contraseña" autocomplete="current-password">
-    <button class="principal" id="entrar">Entrar</button>
+    <p data-t="login.sub"></p>
+    <input class="campo" id="correo" type="email" data-tp="login.mail" autocomplete="username">
+    <input class="campo" id="clave" type="password" data-tp="login.pass" autocomplete="current-password">
+    <button class="principal" id="entrar" data-t="login.enter"></button>
     <p class="error" id="errorIngreso" hidden></p>
   </div>
 </section>
@@ -270,20 +276,24 @@ a{color:inherit}
   <nav id="rail">
     <div class="marca">Dashboards ZB</div>
     <div class="contextos" id="contextos"></div>
-    <button class="cargar" id="irAlta" hidden>+ Cargar dashboard</button>
-    <button class="cargar" id="irPedidos" hidden>Pedidos de acceso</button>
-    <button class="cargar" id="irHuecos" hidden>Lo que buscan y no existe</button>
+    <button class="cargar" id="irAlta" hidden data-t="rail.alta"></button>
+    <button class="cargar" id="irPedidos" hidden></button>
+    <button class="cargar" id="irHuecos" hidden data-t="rail.huecos"></button>
     <div class="pie">
       <div id="quien"></div>
-      <button id="salir">Salir</button>
+      <div class="idiomas">
+        <button id="es" data-idioma="es">ES</button>
+        <button id="pt" data-idioma="pt">PT</button>
+      </div>
+      <button id="salir" data-t="rail.salir"></button>
     </div>
   </nav>
 
   <div id="panel">
     <div id="catalogo">
       <div class="barra">
-        <input id="consulta" placeholder="¿Qué necesitás saber?" aria-label="Buscar">
-        <button id="buscar">Buscar</button>
+        <input id="consulta" data-tp="search.ph" aria-label="Buscar">
+        <button id="buscar" data-t="search.btn"></button>
       </div>
       <div class="etiquetas" id="etiquetas"></div>
       <div class="respuesta" id="respuesta" hidden></div>
@@ -291,114 +301,114 @@ a{color:inherit}
     </div>
 
     <section id="alta">
-      <h1 id="a-encabezado">Cargar un dashboard</h1>
-      <p class="intro">Lo que escribas acá es lo que va a permitir que alguien lo encuentre sin saber cómo se llama. Vale la pena el minuto extra.</p>
+      <h1 id="a-encabezado"></h1>
+      <p class="intro" data-t="alta.intro"></p>
 
       <div class="fila">
-        <div class="f"><label for="a-titulo">Título</label>
+        <div class="f"><label for="a-titulo" data-t="alta.titulo"></label>
           <input id="a-titulo" placeholder="Performance digital semanal"></div>
-        <div class="f"><label for="a-marca">Marca</label>
+        <div class="f"><label for="a-marca" data-t="ficha.marca"></label>
           <input id="a-marca" list="marcas-lista" placeholder="Mercado Libre">
           <datalist id="marcas-lista"></datalist></div>
       </div>
 
       <div class="fila">
-        <div class="f"><label for="a-contexto">Contexto</label>
+        <div class="f"><label for="a-contexto" data-t="alta.contexto"></label>
           <select id="a-contexto">
             <option value="digital">Digital</option>
             <option value="off">OFF</option>
             <option value="360">360</option>
             <option value="regional">Regional</option>
           </select>
-          <div class="pista">Define en qué sección aparece. Uno solo.</div></div>
-        <div class="f"><label for="a-herramienta">Herramienta</label>
+          <div class="pista" data-t="alta.contexto.pista"></div></div>
+        <div class="f"><label for="a-herramienta" data-t="alta.herramienta"></label>
           <select id="a-herramienta">
             <option value="power_bi">Power BI</option>
             <option value="tableau">Tableau</option>
             <option value="looker_studio">Looker Studio</option>
-            <option value="html">HTML propio</option>
+            <option value="html" data-t="alta.html"></option>
           </select></div>
-        <div class="f"><label for="a-proporcion">Proporción</label>
+        <div class="f"><label for="a-proporcion" data-t="alta.proporcion"></label>
           <select id="a-proporcion">
             <option value="16:9">16:9</option>
             <option value="4:3">4:3</option>
-            <option value="alto">Alto completo</option>
+            <option value="alto" data-t="alta.alto"></option>
           </select>
-          <div class="pista">16:9 para Power BI. Alto para HTML propios.</div></div>
+          <div class="pista" data-t="alta.proporcion.pista"></div></div>
       </div>
 
       <div class="fila">
-        <div class="f ancho"><label for="a-url">URL del dashboard</label>
+        <div class="f ancho"><label for="a-url" data-t="alta.url"></label>
           <input id="a-url" placeholder="https://..."></div>
       </div>
 
       <div class="fila">
-        <div class="f ancho"><label for="a-responde">Qué responde este dashboard</label>
-          <textarea id="a-responde" placeholder="Muestra CPM, CPC y CTR por campaña, canal y semana. Sirve para seguir la eficiencia de compra durante la campaña."></textarea>
+        <div class="f ancho"><label for="a-responde" data-t="alta.responde"></label>
+          <textarea id="a-responde" data-tp="alta.responde.ej"></textarea>
           <div class="pista" id="a-cuenta">Contá qué muestra y para qué decisión sirve.</div></div>
       </div>
 
       <div class="fila">
-        <div class="f"><label for="a-metricas">Métricas</label>
+        <div class="f"><label for="a-metricas" data-t="ficha.metricas"></label>
           <input id="a-metricas" placeholder="CPM, CPC, CTR, inversión">
-          <div class="pista">Separadas por coma.</div></div>
-        <div class="f"><label for="a-granularidad">Granularidad</label>
+          <div class="pista" data-t="alta.coma"></div></div>
+        <div class="f"><label for="a-granularidad" data-t="ficha.granularidad"></label>
           <input id="a-granularidad" placeholder="campaña, canal, semana">
-          <div class="pista">Separadas por coma.</div></div>
+          <div class="pista" data-t="alta.coma"></div></div>
       </div>
 
       <div class="fila">
-        <div class="f"><label for="a-frecuencia">Frecuencia de actualización</label>
+        <div class="f"><label for="a-frecuencia" data-t="alta.frecuencia"></label>
           <select id="a-frecuencia">
-            <option value="diaria">Diaria</option>
-            <option value="semanal" selected>Semanal</option>
-            <option value="mensual">Mensual</option>
-            <option value="eventual">Eventual</option>
+            <option value="diaria" data-t="freq.diaria"></option>
+            <option value="semanal" selected data-t="freq.semanal"></option>
+            <option value="mensual" data-t="freq.mensual"></option>
+            <option value="eventual" data-t="freq.eventual"></option>
           </select></div>
-        <div class="f"><label for="a-responsable">Responsable</label>
+        <div class="f"><label for="a-responsable" data-t="ficha.responsable"></label>
           <select id="a-responsable"></select></div>
       </div>
 
       <div class="fila">
-        <div class="f ancho"><label>Etiquetas</label>
+        <div class="f ancho"><label data-t="alta.etiquetas"></label>
           <div class="selector" id="a-tags"></div>
-          <div class="pista" id="a-tags-pista">Elegí una o varias.</div></div>
+          <div class="pista" id="a-tags-pista" data-t="alta.etiquetas.pista"></div></div>
       </div>
 
       <div class="fila">
-        <div class="f ancho"><label for="a-abierto">Quién puede verlo</label>
+        <div class="f ancho"><label for="a-abierto" data-t="alta.quien"></label>
           <select id="a-abierto">
-            <option value="si">Todo el equipo de ZetaBé</option>
-            <option value="no">Restringido — solo a quien se le otorgue</option>
+            <option value="si" data-t="alta.quien.si"></option>
+            <option value="no" data-t="alta.quien.no"></option>
           </select>
-          <div class="pista">Clientes y proveedores nunca lo ven salvo que se les otorgue explícitamente, sin importar esta opción.</div></div>
+          <div class="pista" data-t="alta.quien.pista"></div></div>
       </div>
 
       <div class="acciones">
-        <button class="principal" id="a-guardar">Cargar dashboard</button>
-        <button class="cancelar" id="a-cancelar">Cancelar</button>
-        <button class="cancelar" id="a-archivar" hidden>Archivar</button>
+        <button class="principal" id="a-guardar"></button>
+        <button class="cancelar" id="a-cancelar" data-t="alta.cancelar"></button>
+        <button class="cancelar" id="a-archivar" hidden data-t="alta.archivar"></button>
       </div>
       <p class="error" id="a-error" hidden></p>
     </section>
 
     <section id="huecos">
-      <h1>Lo que buscan y no existe</h1>
-      <p class="intro">Cada búsqueda que no devolvió ningún reporte. No es una lista de errores: es lo que el equipo necesita y todavía nadie construyó.</p>
+      <h1 data-t="rail.huecos"></h1>
+      <p class="intro" data-t="huecos.intro"></p>
       <div id="resumenUso"></div>
       <div id="listaHuecos"></div>
     </section>
 
     <section id="pedidos">
-      <h1>Pedidos de acceso</h1>
-      <p class="intro">Aprobar otorga el acceso a ese reporte para esa persona, nada más.</p>
+      <h1 data-t="pedidos.titulo"></h1>
+      <p class="intro" data-t="pedidos.intro"></p>
       <div id="listaPedidos"></div>
     </section>
 
     <div id="detalle">
       <div class="acciones-detalle">
-        <button class="volver" id="volver">← Volver al catálogo</button>
-        <button class="volver" id="irEditar" hidden>Editar ficha</button>
+        <button class="volver" id="volver" data-t="detalle.volver"></button>
+        <button class="volver" id="irEditar" hidden data-t="detalle.editar"></button>
       </div>
       <div class="marco"><iframe id="embed" title="Dashboard"></iframe></div>
       <section class="ficha" id="ficha"></section>
@@ -422,13 +432,179 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+
+/* ---------- Idiomas ----------
+   Brasil es un mercado relevante de la operación, así que la
+   interfaz vive en los dos idiomas desde el principio. Lo que
+   escribe el equipo en las fichas queda en el idioma en que se
+   escribió: eso no se traduce solo, y traducirlo automáticamente
+   sería peor que dejarlo.
+-------------------------------------------------------------- */
+const TEXTOS = {
+  es: {
+    'login.sub':'Todos los reportes del equipo, en un solo lugar.',
+    'login.mail':'Correo', 'login.pass':'Contraseña', 'login.enter':'Entrar',
+    'login.err':'No pudimos entrar con esos datos. Revisá el correo y la contraseña.',
+    'rail.alta':'+ Cargar dashboard', 'rail.pedidos':'Pedidos de acceso',
+    'rail.huecos':'Lo que buscan y no existe', 'rail.salir':'Salir',
+    'ctx.todos':'Todos',
+    'search.ph':'¿Qué necesitás saber?', 'search.btn':'Buscar',
+    'search.pensando':'Buscando…', 'search.texto':'Búsqueda por texto',
+    'search.reporte':'reporte', 'search.reportes':'reportes',
+    'search.pedir':'Pedir este reporte',
+    'search.pedido':'Anotado. Queda en la lista de reportes por construir.',
+    'fres.ok':'Al día', 'fres.atrasado':'Atrasado',
+    'fres.caido':'Sin actualizar', 'fres.desconocido':'Sin dato',
+    'fecha.hoy':'hoy', 'fecha.ayer':'ayer', 'fecha.hace':'hace {n} días',
+    'fecha.sin':'sin registro',
+    'card.pedir':'Pedir acceso',
+    'grid.vacio':'No hay reportes acá todavía.',
+    'grid.vacio.sub':'Si esperabas encontrar uno, pedilo y queda registrado como pendiente de construir.',
+    'detalle.volver':'← Volver al catálogo', 'detalle.editar':'Editar ficha',
+    'ficha.actualizacion':'Actualización', 'ficha.frecuencia':'Frecuencia',
+    'ficha.metricas':'Métricas', 'ficha.granularidad':'Granularidad',
+    'ficha.responsable':'Responsable', 'ficha.marca':'Marca',
+    'ficha.sin':'Sin asignar',
+    'freq.diaria':'Diaria', 'freq.semanal':'Semanal',
+    'freq.mensual':'Mensual', 'freq.eventual':'Eventual',
+    'alta.nuevo':'Cargar un dashboard', 'alta.editar':'Editar ficha',
+    'alta.guardar':'Cargar dashboard', 'alta.guardar.editar':'Guardar cambios',
+    'alta.intro':'Lo que escribas acá es lo que va a permitir que alguien lo encuentre sin saber cómo se llama. Vale la pena el minuto extra.',
+    'alta.titulo':'Título', 'alta.contexto':'Contexto',
+    'alta.contexto.pista':'Define en qué sección aparece. Uno solo.',
+    'alta.herramienta':'Herramienta', 'alta.html':'HTML propio',
+    'alta.proporcion':'Proporción',
+    'alta.proporcion.pista':'16:9 para Power BI. Alto para HTML propios.',
+    'alta.alto':'Alto completo', 'alta.url':'URL del dashboard',
+    'alta.responde':'Qué responde este dashboard',
+    'alta.responde.ej':'Muestra CPM, CPC y CTR por campaña, canal y semana. Sirve para seguir la eficiencia de compra durante la campaña.',
+    'alta.responde.pista':'Contá qué muestra y para qué decisión sirve.',
+    'alta.responde.falta':'Faltan {n} caracteres. Una línea suelta no alcanza para que alguien lo encuentre.',
+    'alta.responde.ok':'Listo.',
+    'alta.coma':'Separadas por coma.', 'alta.frecuencia':'Frecuencia de actualización',
+    'alta.etiquetas':'Etiquetas', 'alta.etiquetas.pista':'Elegí una o varias.',
+    'alta.etiquetas.nueva':'+ Nueva etiqueta', 'alta.etiquetas.prompt':'Nombre de la etiqueta:',
+    'alta.quien':'Quién puede verlo', 'alta.quien.si':'Todo el equipo de ZetaBé',
+    'alta.quien.no':'Restringido — solo a quien se le otorgue',
+    'alta.quien.pista':'Clientes y proveedores nunca lo ven salvo que se les otorgue explícitamente, sin importar esta opción.',
+    'alta.cancelar':'Cancelar', 'alta.archivar':'Archivar',
+    'alta.archivar.confirmar':'El reporte deja de aparecer en el catálogo. Su ficha y sus permisos se conservan. ¿Archivar?',
+    'alta.falta':'Falta el título, la URL o la descripción de qué responde.',
+    'alta.error':'No se pudo guardar: ',
+    'pedidos.titulo':'Pedidos de acceso',
+    'pedidos.intro':'Aprobar otorga el acceso a ese reporte para esa persona, nada más.',
+    'pedidos.si':'Dar acceso', 'pedidos.no':'Rechazar',
+    'pedidos.vacio':'No hay pedidos pendientes.',
+    'pedidos.vacio.sub':'Cuando alguien del equipo pida acceso a un reporte restringido, aparece acá.',
+    'pedidos.enviado':'Pedido enviado:',
+    'huecos.intro':'Cada búsqueda que no devolvió ningún reporte. No es una lista de errores: es lo que el equipo necesita y todavía nadie construyó.',
+    'huecos.busquedas':'Búsquedas', 'huecos.tasa':'Con resultado',
+    'huecos.personas':'Personas', 'huecos.30':'Últimos 30 días',
+    'huecos.vacio':'Todavía no hay búsquedas sin respuesta.',
+    'huecos.vacio.sub':'Cuando alguien pregunte por algo que el catálogo no cubre, aparece acá.',
+    'huecos.vez':'1 vez', 'huecos.veces':'{n} veces',
+    'huecos.persona':'1 persona', 'huecos.gente':'{n} personas',
+    'cargando':'Cargando…', 'nada':'—'
+  },
+  pt: {
+    'login.sub':'Todos os relatórios da equipe, em um só lugar.',
+    'login.mail':'E-mail', 'login.pass':'Senha', 'login.enter':'Entrar',
+    'login.err':'Não foi possível entrar com esses dados. Confira o e-mail e a senha.',
+    'rail.alta':'+ Carregar dashboard', 'rail.pedidos':'Pedidos de acesso',
+    'rail.huecos':'O que buscam e não existe', 'rail.salir':'Sair',
+    'ctx.todos':'Todos',
+    'search.ph':'O que você precisa saber?', 'search.btn':'Buscar',
+    'search.pensando':'Buscando…', 'search.texto':'Busca por texto',
+    'search.reporte':'relatório', 'search.reportes':'relatórios',
+    'search.pedir':'Pedir este relatório',
+    'search.pedido':'Anotado. Fica na lista de relatórios a construir.',
+    'fres.ok':'Em dia', 'fres.atrasado':'Atrasado',
+    'fres.caido':'Sem atualizar', 'fres.desconocido':'Sem dado',
+    'fecha.hoy':'hoje', 'fecha.ayer':'ontem', 'fecha.hace':'há {n} dias',
+    'fecha.sin':'sem registro',
+    'card.pedir':'Pedir acesso',
+    'grid.vacio':'Ainda não há relatórios aqui.',
+    'grid.vacio.sub':'Se você esperava encontrar um, peça e ele fica registrado como pendente de construção.',
+    'detalle.volver':'← Voltar ao catálogo', 'detalle.editar':'Editar ficha',
+    'ficha.actualizacion':'Atualização', 'ficha.frecuencia':'Frequência',
+    'ficha.metricas':'Métricas', 'ficha.granularidad':'Granularidade',
+    'ficha.responsable':'Responsável', 'ficha.marca':'Marca',
+    'ficha.sin':'Sem responsável',
+    'freq.diaria':'Diária', 'freq.semanal':'Semanal',
+    'freq.mensual':'Mensal', 'freq.eventual':'Eventual',
+    'alta.nuevo':'Carregar um dashboard', 'alta.editar':'Editar ficha',
+    'alta.guardar':'Carregar dashboard', 'alta.guardar.editar':'Salvar alterações',
+    'alta.intro':'O que você escrever aqui é o que vai permitir que alguém encontre este relatório sem saber o nome dele. Vale o minuto extra.',
+    'alta.titulo':'Título', 'alta.contexto':'Contexto',
+    'alta.contexto.pista':'Define em qual seção aparece. Apenas um.',
+    'alta.herramienta':'Ferramenta', 'alta.html':'HTML próprio',
+    'alta.proporcion':'Proporção',
+    'alta.proporcion.pista':'16:9 para Power BI. Altura total para HTML próprios.',
+    'alta.alto':'Altura total', 'alta.url':'URL do dashboard',
+    'alta.responde':'O que este dashboard responde',
+    'alta.responde.ej':'Mostra CPM, CPC e CTR por campanha, canal e semana. Serve para acompanhar a eficiência de compra durante a campanha.',
+    'alta.responde.pista':'Conte o que mostra e para qual decisão serve.',
+    'alta.responde.falta':'Faltam {n} caracteres. Uma linha solta não basta para que alguém encontre.',
+    'alta.responde.ok':'Pronto.',
+    'alta.coma':'Separadas por vírgula.', 'alta.frecuencia':'Frequência de atualização',
+    'alta.etiquetas':'Etiquetas', 'alta.etiquetas.pista':'Escolha uma ou várias.',
+    'alta.etiquetas.nueva':'+ Nova etiqueta', 'alta.etiquetas.prompt':'Nome da etiqueta:',
+    'alta.quien':'Quem pode ver', 'alta.quien.si':'Toda a equipe da ZetaBé',
+    'alta.quien.no':'Restrito — somente para quem receber acesso',
+    'alta.quien.pista':'Clientes e fornecedores nunca veem, a menos que recebam acesso explícito, independentemente desta opção.',
+    'alta.cancelar':'Cancelar', 'alta.archivar':'Arquivar',
+    'alta.archivar.confirmar':'O relatório deixa de aparecer no catálogo. A ficha e as permissões são mantidas. Arquivar?',
+    'alta.falta':'Falta o título, a URL ou a descrição do que o relatório responde.',
+    'alta.error':'Não foi possível salvar: ',
+    'pedidos.titulo':'Pedidos de acesso',
+    'pedidos.intro':'Aprovar concede acesso a esse relatório para essa pessoa, nada mais.',
+    'pedidos.si':'Dar acesso', 'pedidos.no':'Recusar',
+    'pedidos.vacio':'Não há pedidos pendentes.',
+    'pedidos.vacio.sub':'Quando alguém da equipe pedir acesso a um relatório restrito, aparece aqui.',
+    'pedidos.enviado':'Pedido enviado:',
+    'huecos.intro':'Cada busca que não retornou nenhum relatório. Não é uma lista de erros: é o que a equipe precisa e ninguém construiu ainda.',
+    'huecos.busquedas':'Buscas', 'huecos.tasa':'Com resultado',
+    'huecos.personas':'Pessoas', 'huecos.30':'Últimos 30 dias',
+    'huecos.vacio':'Ainda não há buscas sem resposta.',
+    'huecos.vacio.sub':'Quando alguém perguntar por algo que o catálogo não cobre, aparece aqui.',
+    'huecos.vez':'1 vez', 'huecos.veces':'{n} vezes',
+    'huecos.persona':'1 pessoa', 'huecos.gente':'{n} pessoas',
+    'cargando':'Carregando…', 'nada':'—'
+  }
+};
+
+let idioma = (navigator.language || 'es').toLowerCase().startsWith('pt') ? 'pt' : 'es';
+
+function t(clave, vars){
+  let s = TEXTOS[idioma][clave] ?? TEXTOS.es[clave] ?? clave;
+  if (vars) for (const k in vars) s = s.replace('{' + k + '}', vars[k]);
+  return s;
+}
+
+function aplicarIdioma(){
+  document.documentElement.lang = idioma;
+  document.querySelectorAll('[data-t]').forEach(e => e.textContent = t(e.dataset.t));
+  document.querySelectorAll('[data-tp]').forEach(e => e.placeholder = t(e.dataset.tp));
+  for (const b of document.querySelectorAll('.idiomas button'))
+    b.setAttribute('aria-pressed', String(b.dataset.idioma === idioma));
+  $('irPedidos').textContent = t('rail.pedidos');
+  if (sesion){ contarPedidos().catch(() => {}); pintarContextos(); pintarGrilla(); }
+}
+
+for (const b of document.querySelectorAll('.idiomas button')){
+  b.onclick = async () => {
+    idioma = b.dataset.idioma;
+    aplicarIdioma();
+    if (sesion) await db.from('perfiles')
+      .update({ idioma }).eq('id', sesion.user.id);
+  };
+}
+
 const CONTEXTOS = [
   ['todos','Todos'], ['digital','Digital'], ['off','OFF'],
   ['360','360'], ['regional','Regional']
 ];
-const FRESCURA = {
-  ok:'Al día', atrasado:'Atrasado', caido:'Sin actualizar', desconocido:'Sin dato'
-};
+const FRESCURA = f => t('fres.' + f);
 
 let sesion = null, fichas = [], ctxActivo = 'todos', tagsActivos = new Set();
 let esAdmin = false;
@@ -445,7 +621,7 @@ $('entrar').onclick = async () => {
   });
   boton.disabled = false;
   if (error) {
-    err.textContent = 'No pudimos entrar con esos datos. Revisá el correo y la contraseña.';
+    err.textContent = t('login.err');
     err.hidden = false;
     return;
   }
@@ -462,7 +638,9 @@ async function abrir(){
   $('quien').textContent = sesion.user.email;
 
   const { data: yo } = await db.from('perfiles')
-    .select('puede_cargar,admin').eq('id', sesion.user.id).single();
+    .select('puede_cargar,admin,idioma').eq('id', sesion.user.id).single();
+  if (yo?.idioma) idioma = yo.idioma;
+  aplicarIdioma();
   if (yo?.puede_cargar) $('irAlta').hidden = false;
   esAdmin = !!yo?.admin;
   if (esAdmin){
@@ -501,7 +679,7 @@ function pintarContextos(){
     const b = document.createElement('button');
     b.className = 'ctx';
     b.setAttribute('aria-current', String(valor === ctxActivo));
-    b.innerHTML = `${nombre}<span class="cuenta">${n}</span>`;
+    b.innerHTML = `${valor === 'todos' ? t('ctx.todos') : nombre}<span class="cuenta">${n}</span>`;
     b.onclick = () => {
       ctxActivo = valor; tagsActivos.clear();
       soloVer('catalogo');
@@ -537,8 +715,7 @@ function pintarGrilla(lista){
 
   if (!items.length){
     g.innerHTML = `<div class="vacio">
-      <strong>No hay reportes acá todavía.</strong>
-      Si esperabas encontrar uno, pedilo y queda registrado como pendiente de construir.
+      <strong>${t('grid.vacio')}</strong>${t('grid.vacio.sub')}
     </div>`;
     return;
   }
@@ -552,11 +729,11 @@ function pintarGrilla(lista){
         <div class="titulo">${esc(f.titulo)}</div>
         <div class="responde">${esc(f.que_responde)}</div>
         <div class="meta">
-          <span class="estado ${f.frescura}">${FRESCURA[f.frescura]}</span>
+          <span class="estado ${f.frescura}">${FRESCURA(f.frescura)}</span>
           <span>${desde(f.ultimo_refresco)}</span>
           ${(f.tags||[]).map(x => `<span class="tag">${esc(x)}</span>`).join('')}
         </div>
-        ${f.con_acceso ? '' : '<div class="pedir">Pedir acceso</div>'}
+        ${f.con_acceso ? '' : `<div class="pedir">${t('card.pedir')}</div>`}
       </div>`;
     t.onclick = () => f.con_acceso ? verDashboard(f) : pedirAcceso(f);
     g.appendChild(t);
@@ -578,12 +755,12 @@ async function verDashboard(f){
     <h2>${esc(f.titulo)}</h2>
     <div class="responde">${esc(f.que_responde)}</div>
     <div class="datos">
-      <div class="dato"><span>Actualización</span>${FRESCURA[f.frescura]} · ${desde(f.ultimo_refresco)}</div>
-      <div class="dato"><span>Frecuencia</span>${f.frecuencia}</div>
-      <div class="dato"><span>Métricas</span>${(f.metricas||[]).join(', ') || '—'}</div>
-      <div class="dato"><span>Granularidad</span>${(f.granularidad||[]).join(' · ') || '—'}</div>
-      <div class="dato"><span>Responsable</span>${esc(f.responsable || 'Sin asignar')}</div>
-      <div class="dato"><span>Marca</span>${esc(f.marca || '—')}</div>
+      <div class="dato"><span>${t('ficha.actualizacion')}</span>${FRESCURA(f.frescura)} · ${desde(f.ultimo_refresco)}</div>
+      <div class="dato"><span>${t('ficha.frecuencia')}</span>${t('freq.' + f.frecuencia)}</div>
+      <div class="dato"><span>${t('ficha.metricas')}</span>${(f.metricas||[]).join(', ') || t('nada')}</div>
+      <div class="dato"><span>${t('ficha.granularidad')}</span>${(f.granularidad||[]).join(' · ') || t('nada')}</div>
+      <div class="dato"><span>${t('ficha.responsable')}</span>${esc(f.responsable || t('ficha.sin'))}</div>
+      <div class="dato"><span>${t('ficha.marca')}</span>${esc(f.marca || t('nada'))}</div>
     </div>`;
 }
 
@@ -596,7 +773,7 @@ $('volver').onclick = () => {
 async function pedirAcceso(f){
   const { error } = await db.from('solicitudes_acceso')
     .insert({ dashboard_id: f.id, perfil_id: sesion.user.id });
-  alert(error ? 'No se pudo registrar el pedido.' : `Pedido enviado: ${f.titulo}`);
+  alert(error ? t('alta.error') : `${t('pedidos.enviado')} ${f.titulo}`);
   if (!error) contarPedidos().catch(() => {});
 }
 
@@ -609,7 +786,7 @@ async function pedirAcceso(f){
 $('irHuecos').onclick = async () => {
   soloVer('huecos');
   $('resumenUso').innerHTML = '';
-  $('listaHuecos').innerHTML = '<p class="intro">Cargando…</p>';
+  $('listaHuecos').innerHTML = `<p class="intro">${t('cargando')}</p>`;
 
   const [{ data: u }, { data: h }] = await Promise.all([
     db.from('uso').select('*').single(),
@@ -622,17 +799,16 @@ $('irHuecos').onclick = async () => {
       : 0;
     $('resumenUso').innerHTML = `
       <div class="resumen">
-        <div><span>Búsquedas</span><strong>${u.busquedas}</strong></div>
-        <div><span>Con resultado</span><strong>${tasa}%</strong></div>
-        <div><span>Personas</span><strong>${u.personas}</strong></div>
-        <div><span>Últimos 30 días</span><strong>${u.ultimos_30}</strong></div>
+        <div><span>${t('huecos.busquedas')}</span><strong>${u.busquedas}</strong></div>
+        <div><span>${t('huecos.tasa')}</span><strong>${tasa}%</strong></div>
+        <div><span>${t('huecos.personas')}</span><strong>${u.personas}</strong></div>
+        <div><span>${t('huecos.30')}</span><strong>${u.ultimos_30}</strong></div>
       </div>`;
   }
 
   const caja = $('listaHuecos');
   if (!h?.length){
-    caja.innerHTML = `<div class="vacio"><strong>Todavía no hay búsquedas sin respuesta.</strong>
-      Cuando alguien pregunte por algo que el catálogo no cubre, aparece acá.</div>`;
+    caja.innerHTML = `<div class="vacio"><strong>${t('huecos.vacio')}</strong>${t('huecos.vacio.sub')}</div>`;
     return;
   }
 
@@ -640,8 +816,8 @@ $('irHuecos').onclick = async () => {
   for (const x of h){
     const fila = document.createElement('div');
     fila.className = 'hueco';
-    const veces = x.veces === 1 ? '1 vez' : `${x.veces} veces`;
-    const gente = x.personas === 1 ? '1 persona' : `${x.personas} personas`;
+    const veces = x.veces === 1 ? t('huecos.vez') : t('huecos.veces', { n: x.veces });
+    const gente = x.personas === 1 ? t('huecos.persona') : t('huecos.gente', { n: x.personas });
     fila.innerHTML = `<div class="q">${esc(x.busqueda)}</div>
                       <div class="n">${veces} · ${gente} · ${desde(x.ultima)}</div>`;
     caja.appendChild(fila);
@@ -662,21 +838,20 @@ async function contarPedidos(){
   const { count } = await db.from('pedidos')
     .select('id', { count: 'exact', head: true });
   $('irPedidos').textContent = count
-    ? `Pedidos de acceso (${count})`
-    : 'Pedidos de acceso';
+    ? `${t('rail.pedidos')} (${count})`
+    : t('rail.pedidos');
 }
 
 $('irPedidos').onclick = async () => {
   soloVer('pedidos');
   const caja = $('listaPedidos');
-  caja.innerHTML = '<p class="intro">Cargando…</p>';
+  caja.innerHTML = `<p class="intro">${t('cargando')}</p>`;
 
   const { data, error } = await db.from('pedidos').select('*');
   if (error){ caja.innerHTML = '<p class="intro">No se pudieron leer los pedidos.</p>'; return; }
 
   if (!data.length){
-    caja.innerHTML = `<div class="vacio"><strong>No hay pedidos pendientes.</strong>
-      Cuando alguien del equipo pida acceso a un reporte restringido, aparece acá.</div>`;
+    caja.innerHTML = `<div class="vacio"><strong>${t('pedidos.vacio')}</strong>${t('pedidos.vacio.sub')}</div>`;
     return;
   }
 
@@ -691,11 +866,11 @@ $('irPedidos').onclick = async () => {
       </div>`;
 
     const si = document.createElement('button');
-    si.className = 'si'; si.textContent = 'Dar acceso';
+    si.className = 'si'; si.textContent = t('pedidos.si');
     si.onclick = () => resolver('aprobar_solicitud', p.id, fila);
 
     const no = document.createElement('button');
-    no.className = 'no'; no.textContent = 'Rechazar';
+    no.className = 'no'; no.textContent = t('pedidos.no');
     no.onclick = () => resolver('rechazar_solicitud', p.id, fila);
 
     fila.append(si, no);
@@ -705,7 +880,7 @@ $('irPedidos').onclick = async () => {
 
 async function resolver(fn, id, fila){
   const { error } = await db.rpc(fn, { s: id });
-  if (error){ alert('No se pudo: ' + error.message); return; }
+  if (error){ alert(t('alta.error') + error.message); return; }
   fila.remove();
   await contarPedidos();
   await cargar();
@@ -746,9 +921,9 @@ async function pintarSelectorTags(){
   if (esAdmin){
     const n = document.createElement('button');
     n.className = 'op nueva';
-    n.textContent = '+ Nueva etiqueta';
+    n.textContent = t('alta.etiquetas.nueva');
     n.onclick = async () => {
-      const nombre = prompt('Nombre de la etiqueta:');
+      const nombre = prompt(t('alta.etiquetas.prompt'));
       if (!nombre?.trim()) return;
       const slug = nombre.trim().toLowerCase()
         .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
@@ -757,7 +932,7 @@ async function pintarSelectorTags(){
       const { error } = await db.from('etiquetas')
         .insert({ slug, nombre: nombre.trim() });
       if (error && !error.message.includes('duplicate')){
-        alert('No se pudo crear: ' + error.message); return;
+        alert(t('alta.error') + error.message); return;
       }
       tagsElegidos.add(slug);
       await pintarSelectorTags();
@@ -787,8 +962,8 @@ $('irAlta').onclick = async () => {
   editandoId = null;
   await abrirFormulario();
   limpiarFormulario();
-  $('a-encabezado').textContent = 'Cargar un dashboard';
-  $('a-guardar').textContent = 'Cargar dashboard';
+  $('a-encabezado').textContent = t('alta.nuevo');
+  $('a-guardar').textContent = t('alta.guardar');
   $('a-archivar').hidden = true;
   if (ctxActivo !== 'todos') $('a-contexto').value = ctxActivo;
 };
@@ -802,7 +977,7 @@ $('irEditar').onclick = async () => {
   const id = document.querySelector('.marco').dataset.id;
   const { data: d, error } = await db.from('dashboards')
     .select('*').eq('id', id).single();
-  if (error){ alert('No se pudo leer la ficha: ' + error.message); return; }
+  if (error){ alert(t('alta.error') + error.message); return; }
 
   editandoId = id;
   await abrirFormulario();
@@ -811,8 +986,8 @@ $('irEditar').onclick = async () => {
     ? await db.from('marcas').select('nombre').eq('id', d.marca_id).single()
     : { data: null };
 
-  $('a-encabezado').textContent = 'Editar ficha';
-  $('a-guardar').textContent = 'Guardar cambios';
+  $('a-encabezado').textContent = t('alta.editar');
+  $('a-guardar').textContent = t('alta.guardar.editar');
   $('a-archivar').hidden = false;
 
   $('a-titulo').value       = d.titulo;
@@ -835,10 +1010,10 @@ $('irEditar').onclick = async () => {
 
 $('a-archivar').onclick = async () => {
   if (!editandoId) return;
-  if (!confirm('El reporte deja de aparecer en el catálogo. Su ficha y sus permisos se conservan. ¿Archivar?')) return;
+  if (!confirm(t('alta.archivar.confirmar'))) return;
   const { error } = await db.from('dashboards')
     .update({ activo: false }).eq('id', editandoId);
-  if (error){ alert('No se pudo archivar: ' + error.message); return; }
+  if (error){ alert(t('alta.error') + error.message); return; }
   editandoId = null;
   cerrarAlta();
   await cargar();
@@ -864,13 +1039,13 @@ $('a-responde').addEventListener('input', e => {
   const p = $('a-cuenta');
   if (n === 0){
     p.className = 'pista';
-    p.textContent = 'Contá qué muestra y para qué decisión sirve.';
+    p.textContent = t('alta.responde.pista');
   } else if (n < MIN_RESPONDE){
     p.className = 'pista corto';
-    p.textContent = `Faltan ${MIN_RESPONDE - n} caracteres. Una línea suelta no alcanza para que alguien lo encuentre.`;
+    p.textContent = t('alta.responde.falta', { n: MIN_RESPONDE - n });
   } else {
     p.className = 'pista';
-    p.textContent = 'Listo.';
+    p.textContent = t('alta.responde.ok');
   }
 });
 
@@ -886,7 +1061,7 @@ $('a-guardar').onclick = async () => {
   const responde = $('a-responde').value.trim();
 
   if (!titulo || !url || responde.length < MIN_RESPONDE){
-    err.textContent = 'Falta el título, la URL o la descripción de qué responde.';
+    err.textContent = t('alta.falta');
     err.hidden = false;
     return;
   }
@@ -931,7 +1106,7 @@ $('a-guardar').onclick = async () => {
   boton.disabled = false;
 
   if (error){
-    err.textContent = 'No se pudo guardar: ' + error.message;
+    err.textContent = t('alta.error') + error.message;
     err.hidden = false;
     return;
   }
@@ -958,7 +1133,7 @@ async function buscar(){
 
   caja.hidden = false;
   caja.className = 'respuesta pensando';
-  caja.textContent = 'Buscando…';
+  caja.textContent = t('search.pensando');
 
   const { data, error } = await db.functions.invoke('buscar', {
     body: { consulta: texto, contexto: ctxActivo }
@@ -969,7 +1144,7 @@ async function buscar(){
     // sirviendo por texto en vez de dejar la pantalla muerta.
     const r = porTexto(texto);
     caja.className = 'respuesta pensando';
-    caja.textContent = `Búsqueda por texto: ${r.length} ${r.length === 1 ? 'reporte' : 'reportes'}.`;
+    caja.textContent = `${t('search.texto')}: ${r.length} ${t(r.length === 1 ? 'search.reporte' : 'search.reportes')}.`;
     pintarGrilla(r);
     return;
   }
@@ -983,9 +1158,9 @@ async function buscar(){
 
   if (!encontrados.length){
     const b = document.createElement('button');
-    b.textContent = 'Pedir este reporte';
+    b.textContent = t('search.pedir');
     b.onclick = () => {
-      caja.textContent = 'Anotado. Queda en la lista de reportes por construir.';
+      caja.textContent = t('search.pedido');
     };
     caja.appendChild(b);
   }
@@ -1008,14 +1183,15 @@ function esc(s){
     ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 }
 function desde(iso){
-  if (!iso) return 'sin registro';
+  if (!iso) return t('fecha.sin');
   const dias = Math.floor((Date.now() - new Date(iso)) / 86400000);
-  if (dias <= 0) return 'hoy';
-  if (dias === 1) return 'ayer';
-  return `hace ${dias} días`;
+  if (dias <= 0) return t('fecha.hoy');
+  if (dias === 1) return t('fecha.ayer');
+  return t('fecha.hace', { n: dias });
 }
 
 /* ---------- Sesión existente ---------- */
+aplicarIdioma();
 const { data: { session } } = await db.auth.getSession();
 if (session) { sesion = session; abrir(); }
 </script>
